@@ -106,12 +106,14 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(247, 75);
+            this.ClientSize = new System.Drawing.Size(245, 0);
             this.Enabled = false;
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
             this.Name = "Form1";
             this.Opacity = 0D;
             this.ShowInTaskbar = false;
-            this.Text = "Form1";
+            this.Text = "PathOpener";
             this.TopMost = true;
             this.WindowState = System.Windows.Forms.FormWindowState.Minimized;
             this.contextMenu_enable.ResumeLayout(false);

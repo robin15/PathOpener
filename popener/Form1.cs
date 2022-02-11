@@ -62,7 +62,9 @@ namespace popener
 
     class Normal : IKeyState
     {
-        public IKeyState CtrlPressed(KeyboardHook kbh) { return new CtrlLocked(); }
+        public IKeyState CtrlPressed(KeyboardHook kbh) {
+            Console.WriteLine("Ctrl pressed  -> CtrlLocked");
+            return new CtrlLocked(); }
         public IKeyState CtrlReleased(KeyboardHook kbh) { return this; }
         public IKeyState CPressed(KeyboardHook kbh) { return this; }
         public IKeyState CReleased(KeyboardHook kbh) { return this; }
@@ -71,18 +73,25 @@ namespace popener
     class CtrlLocked : IKeyState
     {
         public IKeyState CtrlPressed(KeyboardHook kbh) { return this; }
-        public IKeyState CtrlReleased(KeyboardHook kbh) { return new Normal(); }
-        public IKeyState CPressed(KeyboardHook kbh) { return new Copied(); }
+        public IKeyState CtrlReleased(KeyboardHook kbh) {
+            Console.WriteLine("Ctrl released -> Normal");
+            return new Normal(); }
+        public IKeyState CPressed(KeyboardHook kbh) {
+            Console.WriteLine("C    pressed  -> Copied");
+            return new Copied(); }
         public IKeyState CReleased(KeyboardHook kbh) { return this; }
     }
     
     class Copied : IKeyState
     {
         public IKeyState CtrlPressed(KeyboardHook kbh) { return this; }
-        public IKeyState CtrlReleased(KeyboardHook kbh) { return new Normal(); }
+        public IKeyState CtrlReleased(KeyboardHook kbh) {
+            Console.WriteLine("Ctrl released -> Normal");
+            return new Normal(); }
         public IKeyState CPressed(KeyboardHook kbh) { return this; }
         public IKeyState CReleased(KeyboardHook kbh) {
             kbh.timer.Enabled = true;
+            Console.WriteLine("C   released  -> Ready to open");
             return new ReadyToOpen();
         }
     }
@@ -92,6 +101,7 @@ namespace popener
         public IKeyState CtrlPressed(KeyboardHook kbh) { return this; }
         public IKeyState CtrlReleased(KeyboardHook kbh) {
             kbh.timer.Enabled = false;
+            Console.WriteLine("Ctrl released -> Normal");
             return new Normal();
         }
         public IKeyState CPressed(KeyboardHook kbh)
@@ -113,6 +123,8 @@ namespace popener
                         //p.Start();
                         string command = "/C explorer.exe " + textData;
                         Process.Start("cmd.exe", command);
+                        Console.WriteLine("C    pressed  -> PathOpened");
+                        return new PathOpened();
                     }
                     else
                     {
@@ -124,11 +136,9 @@ namespace popener
                         //kbh._icon.BalloonTipText = (textData == "" ? "clipboard is empty" : textData);
                         //kbh._icon.BalloonTipIcon = ToolTipIcon.Info;
                         //kbh._icon.ShowBalloonTip(500);
+                        Console.WriteLine("C    pressed  -> IllegalPath Opened");
+                        return new IllegalPathOpened();
 
-                        Point p = new Point(Control.MousePosition.X + 38, Control.MousePosition.Y + 15);
-                        kbh._form.Activate();
-                        Help.ShowPopup(kbh._form, "Invalid Path", p);
-                        //kbh.RemovePopupAfter();
                     }
                 }
             }
@@ -140,9 +150,32 @@ namespace popener
     class PathOpened : IKeyState
     {
         public IKeyState CtrlPressed(KeyboardHook kbh) { return this; }
-        public IKeyState CtrlReleased(KeyboardHook kbh) { return new Normal(); }
+        public IKeyState CtrlReleased(KeyboardHook kbh) {
+            Console.WriteLine("Ctrl released -> Normal");
+            return new Normal(); }
         public IKeyState CPressed(KeyboardHook kbh) { return this; }
-        public IKeyState CReleased(KeyboardHook kbh) { return new CtrlLocked(); }
+        public IKeyState CReleased(KeyboardHook kbh) {
+            Console.WriteLine("C    released -> CtrlLocked");
+            return new CtrlLocked(); }
+    }
+
+    class IllegalPathOpened : IKeyState
+    {
+        public IKeyState CtrlPressed(KeyboardHook kbh) { return this; }
+        public IKeyState CtrlReleased(KeyboardHook kbh)
+        {
+            Console.WriteLine("Ctrl released -> Normal");
+            return new Normal();
+        }
+        public IKeyState CPressed(KeyboardHook kbh) { return this; }
+        public IKeyState CReleased(KeyboardHook kbh)
+        {
+            Point p = new Point(Control.MousePosition.X + 38, Control.MousePosition.Y + 15);
+            Help.ShowPopup(kbh._form, "invalid path", p);
+            kbh.RemovePopupAfter();
+            Console.WriteLine("C    released -> CtrlLocked");
+            return new CtrlLocked();
+        }
     }
 
     public class KeyboardHook
@@ -217,7 +250,7 @@ namespace popener
                 int errorCode = Marshal.GetLastWin32Error();
                 throw new Win32Exception(errorCode);
             }
-            timer = new System.Timers.Timer(2000);
+            timer = new System.Timers.Timer(1500);
             timer.Elapsed += (sender, e) =>
             {
                 timer.Enabled = false;
@@ -247,7 +280,7 @@ namespace popener
         public void RemovePopupAfter()
         {
             System.Timers.Timer timer1;
-            timer1 = new System.Timers.Timer(3000);
+            timer1 = new System.Timers.Timer(2500);
             timer1.Elapsed += (sender, e) =>
             {
                 timer1.Enabled = false;
@@ -260,6 +293,7 @@ namespace popener
         private void ActivateForm()
         {
             this._form.Activate();
+            //this._form.Hide();
         }
 
         int OnHook(int nCode, IntPtr wParam, IntPtr lParam)
