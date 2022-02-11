@@ -115,12 +115,14 @@ namespace popener
                     string textData = (string)data.GetData(DataFormats.Text);
                     if (Regex.IsMatch(textData, @"^\\\\"))
                     {
-                        //                        Process p = new Process();
-                        //                        p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                        //                        p.StartInfo.FileName = "cmd.exe";
-                        //                        p.StartInfo.Arguments = "/C explorer.exe " + textData;
+                        //CMDウインドウ非表示　但し、エクスプローラ最前面化されない
+                        //Process p = new Process();
+                        //p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                        //p.StartInfo.FileName = "cmd.exe";
+                        //p.StartInfo.Arguments = "/C explorer.exe " + textData;
                         //kbh._form.Activate();
                         //p.Start();
+
                         string command = "/C explorer.exe " + textData;
                         Process.Start("cmd.exe", command);
                         Console.WriteLine("C    pressed  -> PathOpened");
@@ -129,9 +131,6 @@ namespace popener
                     else
                     {
                         Console.WriteLine("Invalid Path");
-                        //Point p = new Point(Control.MousePosition.X + 38, Control.MousePosition.Y + 15);
-                        //kbh._form.Activate();
-                        //Help.ShowPopup(kbh._form, "Invali Path", p);
                         //kbh._icon.BalloonTipTitle = "Invalid Path";
                         //kbh._icon.BalloonTipText = (textData == "" ? "clipboard is empty" : textData);
                         //kbh._icon.BalloonTipIcon = ToolTipIcon.Info;
@@ -172,7 +171,7 @@ namespace popener
         {
             Point p = new Point(Control.MousePosition.X + 38, Control.MousePosition.Y + 15);
             Help.ShowPopup(kbh._form, "invalid path", p);
-            kbh.RemovePopupAfter();
+            kbh.RemovePopupAfter(2500);
             Console.WriteLine("C    released -> CtrlLocked");
             return new CtrlLocked();
         }
@@ -254,17 +253,7 @@ namespace popener
             timer.Elapsed += (sender, e) =>
             {
                 timer.Enabled = false;
-                Console.WriteLine("Exp");
                 this._form.Invoke(new PopupToolTip(PopupInfo), new object[] {});
-                /* Balloon */
-                //icon.BalloonTipTitle = "Info";
-                //icon.BalloonTipText = "Timeout";
-                //icon.BalloonTipIcon = ToolTipIcon.Info;
-                //icon.ShowBalloonTip(500);
-
-                /* Popup */
-                //Point p = new Point(Control.MousePosition.X + 38, Control.MousePosition.Y + 15);
-                //Help.ShowPopup(form, "Timeout", p);
             };
             timer.Start();
             timer.Enabled = false;
@@ -274,13 +263,13 @@ namespace popener
         {
             Point p = new Point(Control.MousePosition.X + 38, Control.MousePosition.Y + 15);
             Help.ShowPopup(this._form, "Timeout", p);
-            RemovePopupAfter();
+            RemovePopupAfter(2500);
         }
 
-        public void RemovePopupAfter()
+        public void RemovePopupAfter(double interval)
         {
             System.Timers.Timer timer1;
-            timer1 = new System.Timers.Timer(2500);
+            timer1 = new System.Timers.Timer(interval);
             timer1.Elapsed += (sender, e) =>
             {
                 timer1.Enabled = false;
@@ -293,7 +282,6 @@ namespace popener
         private void ActivateForm()
         {
             this._form.Activate();
-            //this._form.Hide();
         }
 
         int OnHook(int nCode, IntPtr wParam, IntPtr lParam)
