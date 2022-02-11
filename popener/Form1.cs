@@ -19,8 +19,8 @@ namespace popener
         public Form1()
         {
             InitializeComponent();
-//            this.Hide();
-//            this.WindowState = FormWindowState.Minimized;
+            //this.Hide();
+            //this.WindowState = FormWindowState.Minimized;
             //Control.CheckForIllegalCrossThreadCalls = false;
             keyboard = new KeyboardHook(this, notifyIcon_enable);
         }
@@ -54,8 +54,6 @@ namespace popener
 
     interface IKeyState
     {
-//        System.Timers.Timer timer { get; set; }
-
         IKeyState CtrlPressed(KeyboardHook kbh);
         IKeyState CtrlReleased(KeyboardHook kbh);
         IKeyState CPressed(KeyboardHook kbh);
@@ -64,10 +62,7 @@ namespace popener
 
     class Normal : IKeyState
     {
-        public IKeyState CtrlPressed(KeyboardHook kbh) {
-            Console.WriteLine("C Pressed -> Ctrl Locked");
-            return new CtrlLocked();
-        }
+        public IKeyState CtrlPressed(KeyboardHook kbh) { return new CtrlLocked(); }
         public IKeyState CtrlReleased(KeyboardHook kbh) { return this; }
         public IKeyState CPressed(KeyboardHook kbh) { return this; }
         public IKeyState CReleased(KeyboardHook kbh) { return this; }
@@ -76,29 +71,17 @@ namespace popener
     class CtrlLocked : IKeyState
     {
         public IKeyState CtrlPressed(KeyboardHook kbh) { return this; }
-        public IKeyState CtrlReleased(KeyboardHook kbh) 
-        {
-            Console.WriteLine("CtrlReleased -> Normal");
-            return new Normal();
-        }
-        public IKeyState CPressed(KeyboardHook kbh) {
-            Console.WriteLine("C Pressed -> Copied");
-            return new Copied();
-        }
+        public IKeyState CtrlReleased(KeyboardHook kbh) { return new Normal(); }
+        public IKeyState CPressed(KeyboardHook kbh) { return new Copied(); }
         public IKeyState CReleased(KeyboardHook kbh) { return this; }
     }
     
     class Copied : IKeyState
     {
         public IKeyState CtrlPressed(KeyboardHook kbh) { return this; }
-        public IKeyState CtrlReleased(KeyboardHook kbh)
-        {
-            Console.WriteLine("Ctrl released -> Normal");
-            return new Normal();
-        }
+        public IKeyState CtrlReleased(KeyboardHook kbh) { return new Normal(); }
         public IKeyState CPressed(KeyboardHook kbh) { return this; }
         public IKeyState CReleased(KeyboardHook kbh) {
-            Console.WriteLine("C Released -> Ready to open");
             kbh.timer.Enabled = true;
             return new ReadyToOpen();
         }
@@ -108,14 +91,12 @@ namespace popener
     {
         public IKeyState CtrlPressed(KeyboardHook kbh) { return this; }
         public IKeyState CtrlReleased(KeyboardHook kbh) {
-            Console.WriteLine("C Pressed -> Normal");
             kbh.timer.Enabled = false;
             return new Normal();
         }
         public IKeyState CPressed(KeyboardHook kbh)
         {
             kbh.timer.Enabled = false;
-            Console.WriteLine("C Pressed -> PathOpened");
             IDataObject data = Clipboard.GetDataObject();
             if (data != null)
             {
@@ -130,13 +111,9 @@ namespace popener
                     else
                     {
                         Console.WriteLine("Invalid Path");
-                        //Point p = new Point(Control.MousePosition.Y + 15, Control.MousePosition.X + 38);
-                        //kbh._form.Activate();
-                        //kbh.ToolTip1.Show("Invalid Path", kbh._form, 0, 0, 3000);
-                        //                        Help.ShowPopup(kbh._form, "Invalid Path", p);
                         Point p = new Point(Control.MousePosition.X + 38, Control.MousePosition.Y + 15);
                         //kbh._form.Activate();
-                        //Help.ShowPopup(kbh._form, "Invali Pathaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", p);
+                        //Help.ShowPopup(kbh._form, "Invali Path", p);
                         kbh._icon.BalloonTipTitle = "Invalid Path";
                         kbh._icon.BalloonTipText = (textData == "" ? "clipboard is empty" : textData);
                         kbh._icon.BalloonTipIcon = ToolTipIcon.Info;
@@ -152,17 +129,9 @@ namespace popener
     class PathOpened : IKeyState
     {
         public IKeyState CtrlPressed(KeyboardHook kbh) { return this; }
-        public IKeyState CtrlReleased(KeyboardHook kbh)
-        {
-            Console.WriteLine("C Released -> Normal");
-            return new Normal();
-        }
+        public IKeyState CtrlReleased(KeyboardHook kbh) { return new Normal(); }
         public IKeyState CPressed(KeyboardHook kbh) { return this; }
-        public IKeyState CReleased(KeyboardHook kbh)
-        {
-            Console.WriteLine("C Released -> CtrlLocked");
-            return new CtrlLocked();
-        }
+        public IKeyState CReleased(KeyboardHook kbh) { return new CtrlLocked(); }
     }
 
     public class KeyboardHook
@@ -173,12 +142,12 @@ namespace popener
         private HookHandler hookDelegate;
         private IntPtr hook;
         private IKeyState _keyState = new Normal();
+        private IntPtr hMod;
+
         public System.Timers.Timer timer;
         public Form _form;
         public NotifyIcon _icon;
         public ToolTip ToolTip1 = new ToolTip();
-
-        IntPtr hMod;
 
         public delegate int HookHandler(int nCode, IntPtr wParam, IntPtr lParam);
 
@@ -244,8 +213,7 @@ namespace popener
                 icon.BalloonTipText = "Timeout";
                 icon.BalloonTipIcon = ToolTipIcon.Info;
                 icon.ShowBalloonTip(500);
-                Point p = new Point(Control.MousePosition.X + 38, Control.MousePosition.Y + 15);
-                //form.Activate();
+                //Point p = new Point(Control.MousePosition.X + 38, Control.MousePosition.Y + 15);
                 //Help.ShowPopup(form, "Timeout", p);
             };
             timer.Start();
@@ -267,7 +235,6 @@ namespace popener
                     else if (wParam == (IntPtr)WM_KEYUP)
                     {
                         _keyState = _keyState.CtrlReleased(this);
-
                     }
                     break;
                 case VK_C:
@@ -278,7 +245,6 @@ namespace popener
                     else if (wParam == (IntPtr)WM_KEYUP)
                     {
                         _keyState = _keyState.CReleased(this);
-
                     }
                     break;
                 default:
