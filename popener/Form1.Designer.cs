@@ -47,7 +47,7 @@
             // 
             this.notifyIcon_enable.ContextMenuStrip = this.contextMenu_enable;
             this.notifyIcon_enable.Icon = ((System.Drawing.Icon)(resources.GetObject("notifyIcon_enable.Icon")));
-            this.notifyIcon_enable.Text = "notifyIcon1";
+            this.notifyIcon_enable.Text = "POpener - enabled";
             this.notifyIcon_enable.Visible = true;
             // 
             // contextMenu_enable
@@ -77,7 +77,7 @@
             // 
             this.notifyIcon_disable.ContextMenuStrip = this.contextMenu_disable;
             this.notifyIcon_disable.Icon = ((System.Drawing.Icon)(resources.GetObject("notifyIcon_disable.Icon")));
-            this.notifyIcon_disable.Text = "notifyIcon1";
+            this.notifyIcon_disable.Text = "POpener - disabled";
             // 
             // contextMenu_disable
             // 
