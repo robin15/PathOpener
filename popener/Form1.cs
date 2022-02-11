@@ -105,19 +105,30 @@ namespace popener
                     string textData = (string)data.GetData(DataFormats.Text);
                     if (Regex.IsMatch(textData, @"^\\\\"))
                     {
+                        //                        Process p = new Process();
+                        //                        p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                        //                        p.StartInfo.FileName = "cmd.exe";
+                        //                        p.StartInfo.Arguments = "/C explorer.exe " + textData;
+                        //kbh._form.Activate();
+                        //p.Start();
                         string command = "/C explorer.exe " + textData;
                         Process.Start("cmd.exe", command);
                     }
                     else
                     {
                         Console.WriteLine("Invalid Path");
-                        Point p = new Point(Control.MousePosition.X + 38, Control.MousePosition.Y + 15);
+                        //Point p = new Point(Control.MousePosition.X + 38, Control.MousePosition.Y + 15);
                         //kbh._form.Activate();
                         //Help.ShowPopup(kbh._form, "Invali Path", p);
-                        kbh._icon.BalloonTipTitle = "Invalid Path";
-                        kbh._icon.BalloonTipText = (textData == "" ? "clipboard is empty" : textData);
-                        kbh._icon.BalloonTipIcon = ToolTipIcon.Info;
-                        kbh._icon.ShowBalloonTip(500);
+                        //kbh._icon.BalloonTipTitle = "Invalid Path";
+                        //kbh._icon.BalloonTipText = (textData == "" ? "clipboard is empty" : textData);
+                        //kbh._icon.BalloonTipIcon = ToolTipIcon.Info;
+                        //kbh._icon.ShowBalloonTip(500);
+
+                        Point p = new Point(Control.MousePosition.X + 38, Control.MousePosition.Y + 15);
+                        kbh._form.Activate();
+                        Help.ShowPopup(kbh._form, "Invalid Path", p);
+                        //kbh.RemovePopupAfter();
                     }
                 }
             }
@@ -150,6 +161,8 @@ namespace popener
         public ToolTip ToolTip1 = new ToolTip();
 
         public delegate int HookHandler(int nCode, IntPtr wParam, IntPtr lParam);
+        public delegate void PopupToolTip();
+        public delegate void RemovePopup();
 
         [DllImport("user32.dll", SetLastError = true)]
         public static extern IntPtr SetWindowsHookEx(int hookType, HookHandler hookDelegate, IntPtr module, uint threadId);
@@ -209,15 +222,44 @@ namespace popener
             {
                 timer.Enabled = false;
                 Console.WriteLine("Exp");
-                icon.BalloonTipTitle = "Info";
-                icon.BalloonTipText = "Timeout";
-                icon.BalloonTipIcon = ToolTipIcon.Info;
-                icon.ShowBalloonTip(500);
+                this._form.Invoke(new PopupToolTip(PopupInfo), new object[] {});
+                /* Balloon */
+                //icon.BalloonTipTitle = "Info";
+                //icon.BalloonTipText = "Timeout";
+                //icon.BalloonTipIcon = ToolTipIcon.Info;
+                //icon.ShowBalloonTip(500);
+
+                /* Popup */
                 //Point p = new Point(Control.MousePosition.X + 38, Control.MousePosition.Y + 15);
                 //Help.ShowPopup(form, "Timeout", p);
             };
             timer.Start();
             timer.Enabled = false;
+        }
+
+        private void PopupInfo()
+        {
+            Point p = new Point(Control.MousePosition.X + 38, Control.MousePosition.Y + 15);
+            Help.ShowPopup(this._form, "Timeout", p);
+            RemovePopupAfter();
+        }
+
+        public void RemovePopupAfter()
+        {
+            System.Timers.Timer timer1;
+            timer1 = new System.Timers.Timer(3000);
+            timer1.Elapsed += (sender, e) =>
+            {
+                timer1.Enabled = false;
+                Console.WriteLine("remove popup");
+                this._form.Invoke(new RemovePopup(ActivateForm), new object[] { });
+            };
+            timer1.Start();
+        }
+
+        private void ActivateForm()
+        {
+            this._form.Activate();
         }
 
         int OnHook(int nCode, IntPtr wParam, IntPtr lParam)
