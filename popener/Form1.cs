@@ -53,6 +53,20 @@ namespace popener
             this.notifyIcon_disable.Visible = false;
             Application.Exit();
         }
+
+        private void notifyIcon_enable_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            this.notifyIcon_enable.Visible = false;
+            this.notifyIcon_disable.Visible = true;
+            keyboard.StopKeyboardHook();
+        }
+
+        private void notifyIcon_disable_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            this.notifyIcon_disable.Visible = false;
+            this.notifyIcon_enable.Visible = true;
+            keyboard.StartKeyboardHook();
+        }
     }
 
     interface IKeyState
