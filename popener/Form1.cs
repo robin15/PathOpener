@@ -120,7 +120,7 @@ namespace popener
                 if (data.GetDataPresent(typeof(string)))
                 {
                     string textData = (string)data.GetData(DataFormats.Text);
-                    if (Regex.IsMatch(textData, @"^\\\\"))
+                    if (Regex.IsMatch(textData.Replace("\"", ""), @"^\\\\"))
                     {
                         //CMDウインドウ非表示　但し、エクスプローラ最前面化されない
                         //Process p = new Process();
@@ -288,7 +288,7 @@ namespace popener
 
         public void PopupToolTip(string msg)
         {
-            Point p = new Point(Control.MousePosition.X + 38, Control.MousePosition.Y + 15);
+            Point p = new Point(Control.MousePosition.X + 35, Control.MousePosition.Y + 15);
             Help.ShowPopup(form, msg, p);
             RemovePopupAfter(2500);
         }
