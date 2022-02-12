@@ -120,7 +120,7 @@ namespace popener
                         //p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
                         //p.StartInfo.FileName = "cmd.exe";
                         //p.StartInfo.Arguments = "/C explorer.exe " + textData;
-                        //kbh._form.Activate();
+                        //kbh.form.Activate();
                         //p.Start();
 
                         string command = "/C explorer.exe " + textData;
@@ -169,9 +169,7 @@ namespace popener
         public IKeyState CPressed(KeyboardHook kbh) { return this; }
         public IKeyState CReleased(KeyboardHook kbh)
         {
-            Point p = new Point(Control.MousePosition.X + 38, Control.MousePosition.Y + 15);
-            Help.ShowPopup(kbh._form, "invalid path", p);
-            kbh.RemovePopupAfter(2500);
+            kbh.PopupToolTip("invalid path");
             Console.WriteLine("C    released -> CtrlLocked");
             return new CtrlLocked();
         }
@@ -181,15 +179,14 @@ namespace popener
     {
         private IntPtr hook;
         private IntPtr hMod;
-        private IKeyState _keyState = new Normal();
+        private IKeyState keyState;
         private HookHandler hookDelegate;
 
+        public Form form;
         public System.Timers.Timer timer;
-        public Form _form;
-
         public delegate int HookHandler(int nCode, IntPtr wParam, IntPtr lParam);
-        public delegate void PopupToolTip();
-        public delegate void RemovePopup();
+        public delegate void PopupToolTipHandler(string msg);
+        public delegate void RemoveToolTipHandler();
 
         [DllImport("user32.dll", SetLastError = true)]
         public static extern IntPtr SetWindowsHookEx(int hookType, HookHandler hookDelegate, IntPtr module, uint threadId);
@@ -211,7 +208,7 @@ namespace popener
 
         #region Win32API Structures
         [StructLayout(LayoutKind.Sequential)]
-        public class KBDLLHOOKSTRUCT
+        protected class KBDLLHOOKSTRUCT
         {
             public uint vkCode;
             public uint scanCode;
@@ -221,7 +218,7 @@ namespace popener
         }
 
         [Flags]
-        public enum KBDLLHOOKSTRUCTFlags : uint
+        protected enum KBDLLHOOKSTRUCTFlags : uint
         {
             KEYEVENTF_EXTENDEDKEY = 0x0001,
             KEYEVENTF_KEYUP = 0x0002,
@@ -230,12 +227,13 @@ namespace popener
         }
         #endregion
 
-        public KeyboardHook(Form form)
+        public KeyboardHook(Form f)
         {
+            form = f;
+            keyState = new Normal();
             hookDelegate = new HookHandler(OnHook);
             hMod = Marshal.GetHINSTANCE(System.Reflection.Assembly.GetExecutingAssembly().GetModules()[0]);
             hook = SetWindowsHookEx(WH_KEYBOARD_LL, hookDelegate, hMod, 0);
-            _form = form;
             if (hook == IntPtr.Zero)
             {
                 int errorCode = Marshal.GetLastWin32Error();
@@ -245,20 +243,20 @@ namespace popener
             timer.Elapsed += (sender, e) =>
             {
                 timer.Enabled = false;
-                this._form.Invoke(new PopupToolTip(PopupInfo), new object[] {});
+                form.Invoke(new PopupToolTipHandler(PopupToolTip), new object[] {"Timeout"});
             };
             timer.Start();
             timer.Enabled = false;
         }
 
-        private void PopupInfo()
+        public void PopupToolTip(string msg)
         {
             Point p = new Point(Control.MousePosition.X + 38, Control.MousePosition.Y + 15);
-            Help.ShowPopup(this._form, "Timeout", p);
+            Help.ShowPopup(form, msg, p);
             RemovePopupAfter(2500);
         }
 
-        public void RemovePopupAfter(double interval)
+        private void RemovePopupAfter(double interval)
         {
             System.Timers.Timer timer1;
             timer1 = new System.Timers.Timer(interval);
@@ -266,17 +264,17 @@ namespace popener
             {
                 timer1.Enabled = false;
                 Console.WriteLine("remove popup");
-                this._form.Invoke(new RemovePopup(ActivateForm), new object[] { });
+                form.Invoke(new RemoveToolTipHandler(ActivateForm), new object[] { });
             };
             timer1.Start();
         }
 
         private void ActivateForm()
         {
-            this._form.Activate();
+            form.Activate();
         }
 
-        int OnHook(int nCode, IntPtr wParam, IntPtr lParam)
+        private int OnHook(int nCode, IntPtr wParam, IntPtr lParam)
         {
             var kb = (KBDLLHOOKSTRUCT)Marshal.PtrToStructure(lParam, typeof(KBDLLHOOKSTRUCT));
             var vkCode = (int)kb.vkCode;
@@ -286,21 +284,21 @@ namespace popener
                 case VK_RCONTROL:
                     if (wParam == (IntPtr)WM_KEYDOWN)
                     {
-                        _keyState = _keyState.CtrlPressed(this);
+                        keyState = keyState.CtrlPressed(this);
                     }
                     else if (wParam == (IntPtr)WM_KEYUP)
                     {
-                        _keyState = _keyState.CtrlReleased(this);
+                        keyState = keyState.CtrlReleased(this);
                     }
                     break;
                 case VK_C:
                     if (wParam == (IntPtr)WM_KEYDOWN)
                     {
-                        _keyState = _keyState.CPressed(this);
+                        keyState = keyState.CPressed(this);
                     }
                     else if (wParam == (IntPtr)WM_KEYUP)
                     {
-                        _keyState = _keyState.CReleased(this);
+                        keyState = keyState.CReleased(this);
                     }
                     break;
                 default:
