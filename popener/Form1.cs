@@ -61,6 +61,7 @@ namespace popener
         IKeyState CtrlReleased(KeyboardHook kbh);
         IKeyState CPressed(KeyboardHook kbh);
         IKeyState CReleased(KeyboardHook kbh);
+        IKeyState AnyPressed(KeyboardHook kbh);
     }
 
     class Normal : IKeyState
@@ -71,6 +72,7 @@ namespace popener
         public IKeyState CtrlReleased(KeyboardHook kbh) { return this; }
         public IKeyState CPressed(KeyboardHook kbh) { return this; }
         public IKeyState CReleased(KeyboardHook kbh) { return this; }
+        public IKeyState AnyPressed(KeyboardHook kbh) { return this; }
     }
 
     class CtrlLocked : IKeyState
@@ -83,8 +85,9 @@ namespace popener
             Console.WriteLine("C    pressed  -> Copied");
             return new Copied(); }
         public IKeyState CReleased(KeyboardHook kbh) { return this; }
+        public IKeyState AnyPressed(KeyboardHook kbh) { return this; }
     }
-    
+
     class Copied : IKeyState
     {
         public IKeyState CtrlPressed(KeyboardHook kbh) { return this; }
@@ -97,6 +100,7 @@ namespace popener
             Console.WriteLine("C   released  -> Ready to open");
             return new ReadyToOpen();
         }
+        public IKeyState AnyPressed(KeyboardHook kbh) { return this; }
     }
 
     class ReadyToOpen : IKeyState
@@ -147,6 +151,10 @@ namespace popener
             return new PathOpened();
         }
         public IKeyState CReleased(KeyboardHook kbh) { return this; }
+        public IKeyState AnyPressed(KeyboardHook kbh) {
+            kbh.StopTimeoutTimer();
+            return new CtrlLocked();
+        }
     }
 
     class PathOpened : IKeyState
@@ -158,7 +166,9 @@ namespace popener
         public IKeyState CPressed(KeyboardHook kbh) { return this; }
         public IKeyState CReleased(KeyboardHook kbh) {
             Console.WriteLine("C    released -> CtrlLocked");
-            return new CtrlLocked(); }
+            return new CtrlLocked();
+        }
+        public IKeyState AnyPressed(KeyboardHook kbh) { return this; }
     }
 
     class IllegalPathOpened : IKeyState
@@ -176,6 +186,8 @@ namespace popener
             Console.WriteLine("C    released -> CtrlLocked");
             return new CtrlLocked();
         }
+        public IKeyState AnyPressed(KeyboardHook kbh) { return this; }
+
     }
 
     public class KeyboardHook
@@ -327,6 +339,10 @@ namespace popener
                     }
                     break;
                 default:
+                    if (wParam == (IntPtr)WM_KEYDOWN)
+                    {
+                        keyState = keyState.AnyPressed(this);
+                    }
                     break;
             }
             return CallNextHookEx(hook, nCode, wParam, lParam);
