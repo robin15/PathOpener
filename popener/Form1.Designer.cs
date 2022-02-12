@@ -49,6 +49,7 @@
             this.notifyIcon_enable.Icon = ((System.Drawing.Icon)(resources.GetObject("notifyIcon_enable.Icon")));
             this.notifyIcon_enable.Text = "POpener - enabled";
             this.notifyIcon_enable.Visible = true;
+            this.notifyIcon_enable.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.notifyIcon_enable_MouseDoubleClick);
             // 
             // contextMenu_enable
             // 
@@ -78,6 +79,7 @@
             this.notifyIcon_disable.ContextMenuStrip = this.contextMenu_disable;
             this.notifyIcon_disable.Icon = ((System.Drawing.Icon)(resources.GetObject("notifyIcon_disable.Icon")));
             this.notifyIcon_disable.Text = "POpener - disabled";
+            this.notifyIcon_disable.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.notifyIcon_disable_MouseDoubleClick);
             // 
             // contextMenu_disable
             // 
