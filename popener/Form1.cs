@@ -22,7 +22,7 @@ namespace popener
             //this.Hide();
             //this.WindowState = FormWindowState.Minimized;
             //Control.CheckForIllegalCrossThreadCalls = false;
-            keyboard = new KeyboardHook(this, notifyIcon_enable);
+            keyboard = new KeyboardHook(this);
         }
 
         private void disableToolStripMenuItem_Click(object sender, EventArgs e)
@@ -179,18 +179,13 @@ namespace popener
 
     public class KeyboardHook
     {
-        private const int MOUSEEVENTF_LEFTDOWN = 0x2;
-        private const int MOUSEEVENTF_LEFTUP = 0x4;
-
-        private HookHandler hookDelegate;
         private IntPtr hook;
-        private IKeyState _keyState = new Normal();
         private IntPtr hMod;
+        private IKeyState _keyState = new Normal();
+        private HookHandler hookDelegate;
 
         public System.Timers.Timer timer;
         public Form _form;
-        public NotifyIcon _icon;
-        public ToolTip ToolTip1 = new ToolTip();
 
         public delegate int HookHandler(int nCode, IntPtr wParam, IntPtr lParam);
         public delegate void PopupToolTip();
@@ -235,15 +230,12 @@ namespace popener
         }
         #endregion
 
-        public KeyboardHook(Form form, NotifyIcon icon)
+        public KeyboardHook(Form form)
         {
             hookDelegate = new HookHandler(OnHook);
             hMod = Marshal.GetHINSTANCE(System.Reflection.Assembly.GetExecutingAssembly().GetModules()[0]);
             hook = SetWindowsHookEx(WH_KEYBOARD_LL, hookDelegate, hMod, 0);
             _form = form;
-            _icon = icon;
-            ToolTip1.ShowAlways = true;
-            ToolTip1.IsBalloon = true;
             if (hook == IntPtr.Zero)
             {
                 int errorCode = Marshal.GetLastWin32Error();
