@@ -23,18 +23,21 @@ namespace popener
             //this.WindowState = FormWindowState.Minimized;
             //Control.CheckForIllegalCrossThreadCalls = false;
             keyboard = new KeyboardHook(this);
+            keyboard.StartKeyboardHook();
         }
 
         private void disableToolStripMenuItem_Click(object sender, EventArgs e)
         {
             this.notifyIcon_enable.Visible = false;
             this.notifyIcon_disable.Visible = true;
+            keyboard.StopKeyboardHook();
         }
 
         private void enableToolStripMenuItem_Click(object sender, EventArgs e)
         {
             this.notifyIcon_disable.Visible = false;
             this.notifyIcon_enable.Visible = true;
+            keyboard.StartKeyboardHook();
         }
 
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
@@ -233,6 +236,10 @@ namespace popener
             keyState = new Normal();
             hookDelegate = new HookHandler(OnHook);
             hMod = Marshal.GetHINSTANCE(System.Reflection.Assembly.GetExecutingAssembly().GetModules()[0]);
+        }
+
+        public void StartKeyboardHook()
+        {
             hook = SetWindowsHookEx(WH_KEYBOARD_LL, hookDelegate, hMod, 0);
             if (hook == IntPtr.Zero)
             {
@@ -243,10 +250,18 @@ namespace popener
             timer.Elapsed += (sender, e) =>
             {
                 timer.Enabled = false;
-                form.Invoke(new PopupToolTipHandler(PopupToolTip), new object[] {"Timeout"});
+                form.Invoke(new PopupToolTipHandler(PopupToolTip), new object[] { "Timeout" });
             };
             timer.Start();
             timer.Enabled = false;
+        }
+
+        public void StopKeyboardHook()
+        {
+            UnhookWindowsHookEx(hook);
+            timer.Enabled = false;
+            timer.Stop();
+            timer.Dispose();
         }
 
         public void PopupToolTip(string msg)
