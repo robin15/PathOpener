@@ -23,18 +23,21 @@ namespace popener
             //this.WindowState = FormWindowState.Minimized;
             //Control.CheckForIllegalCrossThreadCalls = false;
             keyboard = new KeyboardHook(this);
+            keyboard.StartKeyboardHook();
         }
 
         private void disableToolStripMenuItem_Click(object sender, EventArgs e)
         {
             this.notifyIcon_enable.Visible = false;
             this.notifyIcon_disable.Visible = true;
+            keyboard.StopKeyboardHook();
         }
 
         private void enableToolStripMenuItem_Click(object sender, EventArgs e)
         {
             this.notifyIcon_disable.Visible = false;
             this.notifyIcon_enable.Visible = true;
+            keyboard.StartKeyboardHook();
         }
 
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
@@ -58,6 +61,7 @@ namespace popener
         IKeyState CtrlReleased(KeyboardHook kbh);
         IKeyState CPressed(KeyboardHook kbh);
         IKeyState CReleased(KeyboardHook kbh);
+        IKeyState AnyPressed(KeyboardHook kbh);
     }
 
     class Normal : IKeyState
@@ -68,6 +72,7 @@ namespace popener
         public IKeyState CtrlReleased(KeyboardHook kbh) { return this; }
         public IKeyState CPressed(KeyboardHook kbh) { return this; }
         public IKeyState CReleased(KeyboardHook kbh) { return this; }
+        public IKeyState AnyPressed(KeyboardHook kbh) { return this; }
     }
 
     class CtrlLocked : IKeyState
@@ -80,8 +85,9 @@ namespace popener
             Console.WriteLine("C    pressed  -> Copied");
             return new Copied(); }
         public IKeyState CReleased(KeyboardHook kbh) { return this; }
+        public IKeyState AnyPressed(KeyboardHook kbh) { return this; }
     }
-    
+
     class Copied : IKeyState
     {
         public IKeyState CtrlPressed(KeyboardHook kbh) { return this; }
@@ -90,23 +96,24 @@ namespace popener
             return new Normal(); }
         public IKeyState CPressed(KeyboardHook kbh) { return this; }
         public IKeyState CReleased(KeyboardHook kbh) {
-            kbh.timer.Enabled = true;
+            kbh.StartTimeoutTimer();
             Console.WriteLine("C   released  -> Ready to open");
             return new ReadyToOpen();
         }
+        public IKeyState AnyPressed(KeyboardHook kbh) { return this; }
     }
 
     class ReadyToOpen : IKeyState
     {
         public IKeyState CtrlPressed(KeyboardHook kbh) { return this; }
         public IKeyState CtrlReleased(KeyboardHook kbh) {
-            kbh.timer.Enabled = false;
+            kbh.StopTimeoutTimer();
             Console.WriteLine("Ctrl released -> Normal");
             return new Normal();
         }
         public IKeyState CPressed(KeyboardHook kbh)
         {
-            kbh.timer.Enabled = false;
+            kbh.StopTimeoutTimer();
             IDataObject data = Clipboard.GetDataObject();
             if (data != null)
             {
@@ -120,7 +127,7 @@ namespace popener
                         //p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
                         //p.StartInfo.FileName = "cmd.exe";
                         //p.StartInfo.Arguments = "/C explorer.exe " + textData;
-                        //kbh._form.Activate();
+                        //kbh.form.Activate();
                         //p.Start();
 
                         string command = "/C explorer.exe " + textData;
@@ -144,6 +151,10 @@ namespace popener
             return new PathOpened();
         }
         public IKeyState CReleased(KeyboardHook kbh) { return this; }
+        public IKeyState AnyPressed(KeyboardHook kbh) {
+            kbh.StopTimeoutTimer();
+            return new CtrlLocked();
+        }
     }
 
     class PathOpened : IKeyState
@@ -155,7 +166,9 @@ namespace popener
         public IKeyState CPressed(KeyboardHook kbh) { return this; }
         public IKeyState CReleased(KeyboardHook kbh) {
             Console.WriteLine("C    released -> CtrlLocked");
-            return new CtrlLocked(); }
+            return new CtrlLocked();
+        }
+        public IKeyState AnyPressed(KeyboardHook kbh) { return this; }
     }
 
     class IllegalPathOpened : IKeyState
@@ -169,27 +182,26 @@ namespace popener
         public IKeyState CPressed(KeyboardHook kbh) { return this; }
         public IKeyState CReleased(KeyboardHook kbh)
         {
-            Point p = new Point(Control.MousePosition.X + 38, Control.MousePosition.Y + 15);
-            Help.ShowPopup(kbh._form, "invalid path", p);
-            kbh.RemovePopupAfter(2500);
+            kbh.PopupToolTip("invalid path");
             Console.WriteLine("C    released -> CtrlLocked");
             return new CtrlLocked();
         }
+        public IKeyState AnyPressed(KeyboardHook kbh) { return this; }
+
     }
 
     public class KeyboardHook
     {
         private IntPtr hook;
         private IntPtr hMod;
-        private IKeyState _keyState = new Normal();
+        private IKeyState keyState;
         private HookHandler hookDelegate;
+        private System.Timers.Timer timeoutTimer;
 
-        public System.Timers.Timer timer;
-        public Form _form;
-
+        public Form form;
         public delegate int HookHandler(int nCode, IntPtr wParam, IntPtr lParam);
-        public delegate void PopupToolTip();
-        public delegate void RemovePopup();
+        public delegate void PopupToolTipHandler(string msg);
+        public delegate void RemoveToolTipHandler();
 
         [DllImport("user32.dll", SetLastError = true)]
         public static extern IntPtr SetWindowsHookEx(int hookType, HookHandler hookDelegate, IntPtr module, uint threadId);
@@ -211,7 +223,7 @@ namespace popener
 
         #region Win32API Structures
         [StructLayout(LayoutKind.Sequential)]
-        public class KBDLLHOOKSTRUCT
+        protected class KBDLLHOOKSTRUCT
         {
             public uint vkCode;
             public uint scanCode;
@@ -221,7 +233,7 @@ namespace popener
         }
 
         [Flags]
-        public enum KBDLLHOOKSTRUCTFlags : uint
+        protected enum KBDLLHOOKSTRUCTFlags : uint
         {
             KEYEVENTF_EXTENDEDKEY = 0x0001,
             KEYEVENTF_KEYUP = 0x0002,
@@ -230,53 +242,76 @@ namespace popener
         }
         #endregion
 
-        public KeyboardHook(Form form)
+        public KeyboardHook(Form f)
         {
+            form = f;
+            keyState = new Normal();
             hookDelegate = new HookHandler(OnHook);
             hMod = Marshal.GetHINSTANCE(System.Reflection.Assembly.GetExecutingAssembly().GetModules()[0]);
+        }
+
+        public void StartKeyboardHook()
+        {
             hook = SetWindowsHookEx(WH_KEYBOARD_LL, hookDelegate, hMod, 0);
-            _form = form;
             if (hook == IntPtr.Zero)
             {
                 int errorCode = Marshal.GetLastWin32Error();
                 throw new Win32Exception(errorCode);
             }
-            timer = new System.Timers.Timer(1500);
-            timer.Elapsed += (sender, e) =>
+            timeoutTimer = new System.Timers.Timer(1500);
+            timeoutTimer.Elapsed += (sender, e) =>
             {
-                timer.Enabled = false;
-                this._form.Invoke(new PopupToolTip(PopupInfo), new object[] {});
+                timeoutTimer.Enabled = false;
+                form.Invoke(new PopupToolTipHandler(PopupToolTip), new object[] { "Timeout" });
             };
-            timer.Start();
-            timer.Enabled = false;
+            timeoutTimer.Start();
+            timeoutTimer.Enabled = false;
         }
 
-        private void PopupInfo()
+        public void StopKeyboardHook()
+        {
+            UnhookWindowsHookEx(hook);
+            timeoutTimer.Enabled = false;
+            timeoutTimer.Stop();
+            timeoutTimer.Dispose();
+        }
+
+        public void StartTimeoutTimer()
+        {
+            timeoutTimer.Enabled = true;
+        }
+
+        public void StopTimeoutTimer()
+        {
+            timeoutTimer.Enabled = false;
+        }
+
+        public void PopupToolTip(string msg)
         {
             Point p = new Point(Control.MousePosition.X + 38, Control.MousePosition.Y + 15);
-            Help.ShowPopup(this._form, "Timeout", p);
+            Help.ShowPopup(form, msg, p);
             RemovePopupAfter(2500);
         }
 
-        public void RemovePopupAfter(double interval)
+        private void RemovePopupAfter(double interval)
         {
-            System.Timers.Timer timer1;
-            timer1 = new System.Timers.Timer(interval);
-            timer1.Elapsed += (sender, e) =>
+            System.Timers.Timer removeTimer1;
+            removeTimer1 = new System.Timers.Timer(interval);
+            removeTimer1.Elapsed += (sender, e) =>
             {
-                timer1.Enabled = false;
+                removeTimer1.Enabled = false;
                 Console.WriteLine("remove popup");
-                this._form.Invoke(new RemovePopup(ActivateForm), new object[] { });
+                form.Invoke(new RemoveToolTipHandler(ActivateForm), new object[] { });
             };
-            timer1.Start();
+            removeTimer1.Start();
         }
 
         private void ActivateForm()
         {
-            this._form.Activate();
+            form.Activate();
         }
 
-        int OnHook(int nCode, IntPtr wParam, IntPtr lParam)
+        private int OnHook(int nCode, IntPtr wParam, IntPtr lParam)
         {
             var kb = (KBDLLHOOKSTRUCT)Marshal.PtrToStructure(lParam, typeof(KBDLLHOOKSTRUCT));
             var vkCode = (int)kb.vkCode;
@@ -286,24 +321,28 @@ namespace popener
                 case VK_RCONTROL:
                     if (wParam == (IntPtr)WM_KEYDOWN)
                     {
-                        _keyState = _keyState.CtrlPressed(this);
+                        keyState = keyState.CtrlPressed(this);
                     }
                     else if (wParam == (IntPtr)WM_KEYUP)
                     {
-                        _keyState = _keyState.CtrlReleased(this);
+                        keyState = keyState.CtrlReleased(this);
                     }
                     break;
                 case VK_C:
                     if (wParam == (IntPtr)WM_KEYDOWN)
                     {
-                        _keyState = _keyState.CPressed(this);
+                        keyState = keyState.CPressed(this);
                     }
                     else if (wParam == (IntPtr)WM_KEYUP)
                     {
-                        _keyState = _keyState.CReleased(this);
+                        keyState = keyState.CReleased(this);
                     }
                     break;
                 default:
+                    if (wParam == (IntPtr)WM_KEYDOWN)
+                    {
+                        keyState = keyState.AnyPressed(this);
+                    }
                     break;
             }
             return CallNextHookEx(hook, nCode, wParam, lParam);
