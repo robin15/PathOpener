@@ -122,14 +122,14 @@ namespace popener
                     string textData = (string)data.GetData(DataFormats.Text);
                     if (Regex.IsMatch(textData.Replace("\"", ""), @"^\\\\"))
                     {
-                        //CMDウインドウ非表示　但し、エクスプローラ最前面化されない
-                        //Process p = new Process();
-                        //p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                        //p.StartInfo.FileName = "cmd.exe";
-                        //p.StartInfo.Arguments = "/C explorer.exe " + textData;
-                        //kbh.form.Activate();
-                        //p.Start();
-
+                        /* CMDウインドウ非表示　但し、エクスプローラ最前面化されない
+                        Process p = new Process();
+                        p.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                        p.StartInfo.FileName = "cmd.exe";
+                        p.StartInfo.Arguments = "/C explorer.exe " + textData;
+                        kbh.form.Activate();
+                        p.Start();
+                        */
                         string command = "/C explorer.exe " + textData;
                         Process.Start("cmd.exe", command);
                         Console.WriteLine("C    pressed  -> PathOpened");
@@ -248,6 +248,7 @@ namespace popener
             keyState = new Normal();
             hookDelegate = new HookHandler(OnHook);
             hMod = Marshal.GetHINSTANCE(System.Reflection.Assembly.GetExecutingAssembly().GetModules()[0]);
+            PopupToolTip("PathOpener start");
         }
 
         public void StartKeyboardHook()
@@ -288,7 +289,7 @@ namespace popener
 
         public void PopupToolTip(string msg)
         {
-            Point p = new Point(Control.MousePosition.X + 35, Control.MousePosition.Y + 15);
+            Point p = new Point(Control.MousePosition.X + 38, Control.MousePosition.Y + 20);
             Help.ShowPopup(form, msg, p);
             RemovePopupAfter(2500);
         }
