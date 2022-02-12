@@ -93,7 +93,7 @@ namespace popener
             return new Normal(); }
         public IKeyState CPressed(KeyboardHook kbh) { return this; }
         public IKeyState CReleased(KeyboardHook kbh) {
-            kbh.timer.Enabled = true;
+            kbh.StartTimeoutTimer();
             Console.WriteLine("C   released  -> Ready to open");
             return new ReadyToOpen();
         }
@@ -103,13 +103,13 @@ namespace popener
     {
         public IKeyState CtrlPressed(KeyboardHook kbh) { return this; }
         public IKeyState CtrlReleased(KeyboardHook kbh) {
-            kbh.timer.Enabled = false;
+            kbh.StopTimeoutTimer();
             Console.WriteLine("Ctrl released -> Normal");
             return new Normal();
         }
         public IKeyState CPressed(KeyboardHook kbh)
         {
-            kbh.timer.Enabled = false;
+            kbh.StopTimeoutTimer();
             IDataObject data = Clipboard.GetDataObject();
             if (data != null)
             {
@@ -184,9 +184,9 @@ namespace popener
         private IntPtr hMod;
         private IKeyState keyState;
         private HookHandler hookDelegate;
+        private System.Timers.Timer timeoutTimer;
 
         public Form form;
-        public System.Timers.Timer timer;
         public delegate int HookHandler(int nCode, IntPtr wParam, IntPtr lParam);
         public delegate void PopupToolTipHandler(string msg);
         public delegate void RemoveToolTipHandler();
@@ -246,22 +246,32 @@ namespace popener
                 int errorCode = Marshal.GetLastWin32Error();
                 throw new Win32Exception(errorCode);
             }
-            timer = new System.Timers.Timer(1500);
-            timer.Elapsed += (sender, e) =>
+            timeoutTimer = new System.Timers.Timer(1500);
+            timeoutTimer.Elapsed += (sender, e) =>
             {
-                timer.Enabled = false;
+                timeoutTimer.Enabled = false;
                 form.Invoke(new PopupToolTipHandler(PopupToolTip), new object[] { "Timeout" });
             };
-            timer.Start();
-            timer.Enabled = false;
+            timeoutTimer.Start();
+            timeoutTimer.Enabled = false;
         }
 
         public void StopKeyboardHook()
         {
             UnhookWindowsHookEx(hook);
-            timer.Enabled = false;
-            timer.Stop();
-            timer.Dispose();
+            timeoutTimer.Enabled = false;
+            timeoutTimer.Stop();
+            timeoutTimer.Dispose();
+        }
+
+        public void StartTimeoutTimer()
+        {
+            timeoutTimer.Enabled = true;
+        }
+
+        public void StopTimeoutTimer()
+        {
+            timeoutTimer.Enabled = false;
         }
 
         public void PopupToolTip(string msg)
@@ -273,15 +283,15 @@ namespace popener
 
         private void RemovePopupAfter(double interval)
         {
-            System.Timers.Timer timer1;
-            timer1 = new System.Timers.Timer(interval);
-            timer1.Elapsed += (sender, e) =>
+            System.Timers.Timer removeTimer1;
+            removeTimer1 = new System.Timers.Timer(interval);
+            removeTimer1.Elapsed += (sender, e) =>
             {
-                timer1.Enabled = false;
+                removeTimer1.Enabled = false;
                 Console.WriteLine("remove popup");
                 form.Invoke(new RemoveToolTipHandler(ActivateForm), new object[] { });
             };
-            timer1.Start();
+            removeTimer1.Start();
         }
 
         private void ActivateForm()
