@@ -116,7 +116,6 @@ namespace popener
             removeTimer.Elapsed += (sender, e) =>
             {
                 removeTimer.Enabled = false;
-                Console.WriteLine("remove popup");
                 form.Invoke(new RemoveToolTipHandler(ActivateForm), new object[] { });
             };
             removeTimer.Start();
