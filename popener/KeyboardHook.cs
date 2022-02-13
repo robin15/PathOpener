@@ -61,7 +61,7 @@ namespace popener
         public KeyboardHook(Form f)
         {
             form = f;
-            keyState = new Normal();
+            keyState = new Neutral();
             hookDelegate = new HookHandler(OnHook);
             hMod = Marshal.GetHINSTANCE(System.Reflection.Assembly.GetExecutingAssembly().GetModules()[0]);
             PopupToolTip("PathOpener start");
