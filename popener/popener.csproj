@@ -86,7 +86,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="main_icon.ico" />
-    <Content Include="notify_icon_disabled.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
