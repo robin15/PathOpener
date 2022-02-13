@@ -58,9 +58,9 @@ namespace popener
         }
         #endregion
 
-        public KeyboardHook(Form f)
+        public KeyboardHook(Form frm)
         {
-            form = f;
+            form = frm;
             keyState = new Neutral();
             hookDelegate = new HookHandler(OnHook);
             hMod = Marshal.GetHINSTANCE(System.Reflection.Assembly.GetExecutingAssembly().GetModules()[0]);
@@ -112,15 +112,14 @@ namespace popener
 
         private void RemovePopupAfter(double interval)
         {
-            System.Timers.Timer removeTimer1;
-            removeTimer1 = new System.Timers.Timer(interval);
-            removeTimer1.Elapsed += (sender, e) =>
+            System.Timers.Timer removeTimer = new System.Timers.Timer(interval);
+            removeTimer.Elapsed += (sender, e) =>
             {
-                removeTimer1.Enabled = false;
+                removeTimer.Enabled = false;
                 Console.WriteLine("remove popup");
                 form.Invoke(new RemoveToolTipHandler(ActivateForm), new object[] { });
             };
-            removeTimer1.Start();
+            removeTimer.Start();
         }
 
         private void ActivateForm()
