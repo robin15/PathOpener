@@ -116,14 +116,19 @@ namespace popener
             removeTimer.Elapsed += (sender, e) =>
             {
                 removeTimer.Enabled = false;
-                form.Invoke(new RemoveToolTipHandler(ActivateForm), new object[] { });
+                form.Invoke(new RemoveToolTipHandler(SendToBack), new object[] { });
             };
             removeTimer.Start();
         }
 
-        private void ActivateForm()
+        private void BringToFront()
         {
-            form.Activate();
+            form.BringToFront();
+        }
+
+        private void SendToBack()
+        {
+            form.SendToBack();
         }
 
         private int OnHook(int nCode, IntPtr wParam, IntPtr lParam)
