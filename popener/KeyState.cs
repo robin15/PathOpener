@@ -62,7 +62,7 @@ namespace popener
                 if (data.GetDataPresent(typeof(string)))
                 {
                     string textData = (string)data.GetData(DataFormats.Text);
-                    if (Regex.IsMatch(textData.Replace("\"", ""), @"^\\\\"))
+                    if (Regex.IsMatch(textData.Replace("\"", ""), @"^\\\\") || Regex.IsMatch(textData.Replace("\"", ""), "^file:", RegexOptions.IgnoreCase))
                     {
                         string command = "/C explorer.exe " + textData;
                         Process.Start("cmd.exe", command);
