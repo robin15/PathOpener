@@ -20,7 +20,7 @@ namespace popener
         {
             this.notifyIcon.Icon = Properties.Resources.notify_icon_disabled;
             this.notifyIcon.ContextMenuStrip = this.contextMenu_disable;
-            this.notifyIcon.Text = "POpener - enabled";
+            this.notifyIcon.Text = "POpener - disabled";
             keyboard.StopKeyboardHook();
         }
 
@@ -28,7 +28,7 @@ namespace popener
         {
             this.notifyIcon.Icon = Properties.Resources.notify_icon_enabled;
             this.notifyIcon.ContextMenuStrip = this.contextMenu_enable;
-            this.notifyIcon.Text = "POpener - disabled";
+            this.notifyIcon.Text = "POpener - enabled";
             keyboard.StartKeyboardHook();
         }
 
