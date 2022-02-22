@@ -4,7 +4,7 @@ using System.Drawing;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
 
-namespace popener
+namespace PathOpener
 {
     public class KeyboardHook
     {

@@ -3,7 +3,7 @@ using System.Windows.Forms;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 
-namespace popener
+namespace PathOpener
 {
     interface IKeyState
     {

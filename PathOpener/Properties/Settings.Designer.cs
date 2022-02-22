@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace popener.Properties
+namespace PathOpener.Properties
 {
 
 

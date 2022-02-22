@@ -1,4 +1,4 @@
-﻿namespace popener
+﻿namespace PathOpener
 {
     partial class Form1
     {
@@ -43,8 +43,8 @@
             // notifyIcon
             // 
             this.notifyIcon.ContextMenuStrip = this.contextMenu_enable;
-            this.notifyIcon.Icon = global::popener.Properties.Resources.notify_icon_enabled;
-            this.notifyIcon.Text = "POpener - enabled";
+            this.notifyIcon.Icon = global::PathOpener.Properties.Resources.notify_icon_enabled;
+            this.notifyIcon.Text = "PathOpener - enabled";
             this.notifyIcon.Visible = true;
             this.notifyIcon.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.notifyIcon_enable_MouseDoubleClick);
             // 

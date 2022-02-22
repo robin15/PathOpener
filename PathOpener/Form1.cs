@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 
-namespace popener
+namespace PathOpener
 {
     public partial class Form1 : Form
     {
@@ -20,7 +20,7 @@ namespace popener
         {
             this.notifyIcon.Icon = Properties.Resources.notify_icon_disabled;
             this.notifyIcon.ContextMenuStrip = this.contextMenu_disable;
-            this.notifyIcon.Text = "POpener - disabled";
+            this.notifyIcon.Text = "PathOpener - disabled";
             keyboard.StopKeyboardHook();
         }
 
@@ -28,7 +28,7 @@ namespace popener
         {
             this.notifyIcon.Icon = Properties.Resources.notify_icon_enabled;
             this.notifyIcon.ContextMenuStrip = this.contextMenu_enable;
-            this.notifyIcon.Text = "POpener - enabled";
+            this.notifyIcon.Text = "PathOpener - enabled";
             keyboard.StartKeyboardHook();
         }
 
@@ -48,7 +48,7 @@ namespace popener
         {
             this.notifyIcon.Icon = Properties.Resources.notify_icon_disabled;
             this.notifyIcon.ContextMenuStrip = this.contextMenu_disable;
-            this.notifyIcon.Text = "POpener - disabled";
+            this.notifyIcon.Text = "PathOpener - disabled";
             keyboard.StopKeyboardHook();
         }
 
@@ -56,7 +56,7 @@ namespace popener
         {
             this.notifyIcon.Icon = Properties.Resources.notify_icon_enabled;
             this.notifyIcon.ContextMenuStrip = this.contextMenu_enable;
-            this.notifyIcon.Text = "POpener - enabled";
+            this.notifyIcon.Text = "PathOpener - enabled";
             keyboard.StartKeyboardHook();
         }
     }
