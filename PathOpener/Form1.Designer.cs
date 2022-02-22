@@ -43,7 +43,7 @@
             // notifyIcon
             // 
             this.notifyIcon.ContextMenuStrip = this.contextMenu_enable;
-            this.notifyIcon.Icon = global::PathOpener.Properties.Resources.notify_icon_enabled;
+            this.notifyIcon.Icon = Properties.Resources.notify_icon_enabled;
             this.notifyIcon.Text = "PathOpener - enabled";
             this.notifyIcon.Visible = true;
             this.notifyIcon.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.notifyIcon_enable_MouseDoubleClick);
