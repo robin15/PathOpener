@@ -5,15 +5,15 @@ namespace PathOpener
 {
     public partial class Form1 : Form
     {
-        KeyboardHook keyboard;
+        KeyHook keyHook;
         public Form1()
         {
             InitializeComponent();
             //this.Hide();
             //this.WindowState = FormWindowState.Minimized;
             //Control.CheckForIllegalCrossThreadCalls = false;
-            keyboard = new KeyboardHook(this);
-            keyboard.StartKeyboardHook();
+            keyHook = new KeyHook(this);
+            keyHook.StartKeyHook();
         }
 
         private void disableToolStripMenuItem_Click(object sender, EventArgs e)
@@ -21,7 +21,7 @@ namespace PathOpener
             this.notifyIcon.Icon = Properties.Resources.notify_icon_disabled;
             this.notifyIcon.ContextMenuStrip = this.contextMenu_disable;
             this.notifyIcon.Text = "PathOpener - disabled";
-            keyboard.StopKeyboardHook();
+            keyHook.StopKeyHook();
         }
 
         private void enableToolStripMenuItem_Click(object sender, EventArgs e)
@@ -29,7 +29,7 @@ namespace PathOpener
             this.notifyIcon.Icon = Properties.Resources.notify_icon_enabled;
             this.notifyIcon.ContextMenuStrip = this.contextMenu_enable;
             this.notifyIcon.Text = "PathOpener - enabled";
-            keyboard.StartKeyboardHook();
+            keyHook.StartKeyHook();
         }
 
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
@@ -49,7 +49,7 @@ namespace PathOpener
             this.notifyIcon.Icon = Properties.Resources.notify_icon_disabled;
             this.notifyIcon.ContextMenuStrip = this.contextMenu_disable;
             this.notifyIcon.Text = "PathOpener - disabled";
-            keyboard.StopKeyboardHook();
+            keyHook.StopKeyHook();
         }
 
         private void notifyIcon_disable_MouseDoubleClick(object sender, MouseEventArgs e)
@@ -57,7 +57,7 @@ namespace PathOpener
             this.notifyIcon.Icon = Properties.Resources.notify_icon_enabled;
             this.notifyIcon.ContextMenuStrip = this.contextMenu_enable;
             this.notifyIcon.Text = "PathOpener - enabled";
-            keyboard.StartKeyboardHook();
+            keyHook.StartKeyHook();
         }
     }
 }
