@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 
 namespace PathOpener
 {
-    public class KeyboardHook
+    public class KeyHook
     {
         private IntPtr hook;
         private IntPtr hMod;
@@ -58,7 +58,7 @@ namespace PathOpener
         }
         #endregion
 
-        public KeyboardHook(Form frm)
+        public KeyHook(Form frm)
         {
             form = frm;
             keyState = new Neutral();
@@ -67,7 +67,7 @@ namespace PathOpener
             PopupToolTip("PathOpener start");
         }
 
-        public void StartKeyboardHook()
+        public void StartKeyHook()
         {
             hook = SetWindowsHookEx(WH_KEYBOARD_LL, hookDelegate, hMod, 0);
             if (hook == IntPtr.Zero)
@@ -85,7 +85,7 @@ namespace PathOpener
             timeoutTimer.Enabled = false;
         }
 
-        public void StopKeyboardHook()
+        public void StopKeyHook()
         {
             UnhookWindowsHookEx(hook);
             timeoutTimer.Enabled = false;

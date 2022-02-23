@@ -7,55 +7,55 @@ namespace PathOpener
 {
     interface IKeyState
     {
-        IKeyState CtrlPressed(KeyboardHook kbh);
-        IKeyState CtrlReleased(KeyboardHook kbh);
-        IKeyState CPressed(KeyboardHook kbh);
-        IKeyState CReleased(KeyboardHook kbh);
-        IKeyState AnyPressed(KeyboardHook kbh);
+        IKeyState CtrlPressed(KeyHook kh);
+        IKeyState CtrlReleased(KeyHook kh);
+        IKeyState CPressed(KeyHook kh);
+        IKeyState CReleased(KeyHook kh);
+        IKeyState AnyPressed(KeyHook kh);
     }
 
     class Neutral : IKeyState
     {
-        public IKeyState CtrlPressed(KeyboardHook kbh) { return new CtrlLocked(); }
-        public IKeyState CtrlReleased(KeyboardHook kbh) { return this; }
-        public IKeyState CPressed(KeyboardHook kbh) { return this; }
-        public IKeyState CReleased(KeyboardHook kbh) { return this; }
-        public IKeyState AnyPressed(KeyboardHook kbh) { return this; }
+        public IKeyState CtrlPressed(KeyHook kh) { return new CtrlLocked(); }
+        public IKeyState CtrlReleased(KeyHook kh) { return this; }
+        public IKeyState CPressed(KeyHook kh) { return this; }
+        public IKeyState CReleased(KeyHook kh) { return this; }
+        public IKeyState AnyPressed(KeyHook kh) { return this; }
     }
 
     class CtrlLocked : IKeyState
     {
-        public IKeyState CtrlPressed(KeyboardHook kbh) { return this; }
-        public IKeyState CtrlReleased(KeyboardHook kbh) { return new Neutral(); }
-        public IKeyState CPressed(KeyboardHook kbh) { return new Copied(); }
-        public IKeyState CReleased(KeyboardHook kbh) { return this; }
-        public IKeyState AnyPressed(KeyboardHook kbh) { return this; }
+        public IKeyState CtrlPressed(KeyHook kh) { return this; }
+        public IKeyState CtrlReleased(KeyHook kh) { return new Neutral(); }
+        public IKeyState CPressed(KeyHook kh) { return new Copied(); }
+        public IKeyState CReleased(KeyHook kh) { return this; }
+        public IKeyState AnyPressed(KeyHook kh) { return this; }
     }
 
     class Copied : IKeyState
     {
-        public IKeyState CtrlPressed(KeyboardHook kbh) { return this; }
-        public IKeyState CtrlReleased(KeyboardHook kbh) { return new Neutral(); }
-        public IKeyState CPressed(KeyboardHook kbh) { return this; }
-        public IKeyState CReleased(KeyboardHook kbh)
+        public IKeyState CtrlPressed(KeyHook kh) { return this; }
+        public IKeyState CtrlReleased(KeyHook kh) { return new Neutral(); }
+        public IKeyState CPressed(KeyHook kh) { return this; }
+        public IKeyState CReleased(KeyHook kh)
         {
-            kbh.StartTimeoutTimer();
+            kh.StartTimeoutTimer();
             return new ReadyToOpen();
         }
-        public IKeyState AnyPressed(KeyboardHook kbh) { return this; }
+        public IKeyState AnyPressed(KeyHook kh) { return this; }
     }
 
     class ReadyToOpen : IKeyState
     {
-        public IKeyState CtrlPressed(KeyboardHook kbh) { return this; }
-        public IKeyState CtrlReleased(KeyboardHook kbh)
+        public IKeyState CtrlPressed(KeyHook kh) { return this; }
+        public IKeyState CtrlReleased(KeyHook kh)
         {
-            kbh.StopTimeoutTimer();
+            kh.StopTimeoutTimer();
             return new Neutral();
         }
-        public IKeyState CPressed(KeyboardHook kbh)
+        public IKeyState CPressed(KeyHook kh)
         {
-            kbh.StopTimeoutTimer();
+            kh.StopTimeoutTimer();
             IDataObject data = Clipboard.GetDataObject();
             if (data != null)
             {
@@ -76,33 +76,33 @@ namespace PathOpener
             }
             return new PathOpened();
         }
-        public IKeyState CReleased(KeyboardHook kbh) { return this; }
-        public IKeyState AnyPressed(KeyboardHook kbh)
+        public IKeyState CReleased(KeyHook kh) { return this; }
+        public IKeyState AnyPressed(KeyHook kh)
         {
-            kbh.StopTimeoutTimer();
+            kh.StopTimeoutTimer();
             return new CtrlLocked();
         }
     }
 
     class PathOpened : IKeyState
     {
-        public IKeyState CtrlPressed(KeyboardHook kbh) { return this; }
-        public IKeyState CtrlReleased(KeyboardHook kbh) { return new Neutral(); }
-        public IKeyState CPressed(KeyboardHook kbh) { return this; }
-        public IKeyState CReleased(KeyboardHook kbh) { return new CtrlLocked(); }
-        public IKeyState AnyPressed(KeyboardHook kbh) { return this; }
+        public IKeyState CtrlPressed(KeyHook kh) { return this; }
+        public IKeyState CtrlReleased(KeyHook kh) { return new Neutral(); }
+        public IKeyState CPressed(KeyHook kh) { return this; }
+        public IKeyState CReleased(KeyHook kh) { return new CtrlLocked(); }
+        public IKeyState AnyPressed(KeyHook kh) { return this; }
     }
 
     class InvalidPath : IKeyState
     {
-        public IKeyState CtrlPressed(KeyboardHook kbh) { return this; }
-        public IKeyState CtrlReleased(KeyboardHook kbh) { return new Neutral(); }
-        public IKeyState CPressed(KeyboardHook kbh) { return this; }
-        public IKeyState CReleased(KeyboardHook kbh)
+        public IKeyState CtrlPressed(KeyHook kh) { return this; }
+        public IKeyState CtrlReleased(KeyHook kh) { return new Neutral(); }
+        public IKeyState CPressed(KeyHook kh) { return this; }
+        public IKeyState CReleased(KeyHook kh)
         {
-            kbh.PopupToolTip("invalid path");
+            kh.PopupToolTip("invalid path");
             return new CtrlLocked();
         }
-        public IKeyState AnyPressed(KeyboardHook kbh) { return this; }
+        public IKeyState AnyPressed(KeyHook kh) { return this; }
     }
 }
